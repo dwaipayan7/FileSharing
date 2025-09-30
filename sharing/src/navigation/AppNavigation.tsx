@@ -8,6 +8,7 @@ import HomeScreen from '../pages/HomeScreen';
 import SendScreen from '../pages/SendScreen';
 import ConnectionScreen from '../pages/ConnectionScreen';
 import ReceiveScreen from '../pages/ReceiveScreen';
+import ReceivedFileScreen from '../pages/ReceivedFileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +26,10 @@ const AppNavigation = () => {
         <Stack.Screen name="SendScreen" component={SendScreen} />
         <Stack.Screen name="ConnectionScreen" component={ConnectionScreen} />
         <Stack.Screen name="ReceiveScreen" component={ReceiveScreen} />
+        <Stack.Screen
+          name="ReceivedFileScreen"
+          component={ReceivedFileScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

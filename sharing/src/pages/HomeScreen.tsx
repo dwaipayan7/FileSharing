@@ -14,6 +14,7 @@ import Options from '../components/home/Options';
 import Misc from '../components/home/Misc';
 import Icon from '../components/global/Icon';
 import QRScannerModal from '../components/modal/QRScannerModal';
+import { navigate } from '../utils/NavigationUtil';
 
 const HomeScreen = () => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -30,7 +31,7 @@ const HomeScreen = () => {
         <Misc />
       </ScrollView>
       <View style={styles.floatingQRContainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigate('ReceivedFileScreen')}>
           <Icon iconFamily="Ionicons" name="apps-sharp" size={24} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setIsVisible(true)}>
