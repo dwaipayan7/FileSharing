@@ -12,6 +12,7 @@ import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
 import QRGenerateModal from '../modal/QRGenerateModal';
 import { goBack, navigate } from '../../utils/NavigationUtil';
 import { setViewStyle } from 'react-native-reanimated/lib/typescript/css/native';
+import QRScannerModal from '../modal/QRScannerModal';
 
 const HomeHeader = () => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
