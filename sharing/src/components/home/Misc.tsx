@@ -14,7 +14,7 @@ const Misc = () => {
       />
       <View style={styles.flexRowBetween}>
         <CustomText fontFamily="Okra-Bold" style={styles.text} fontSize={20}>
-          #1 Best File Sharing
+          #1 India's Best File Sharing
         </CustomText>
         <Image
           source={require('../../../assets/icons/share_logo.jpg')}
