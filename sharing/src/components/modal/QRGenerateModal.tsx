@@ -23,143 +23,23 @@ import Icon from '../global/Icon';
 import {
   Camera,
   CodeScanner,
+  tryParseNativeCameraError,
   useCameraDevice,
 } from 'react-native-vision-camera';
 import { modalStyles } from '../../styles/modalStyles';
+import { useTCP } from '../../service/TCPProvider';
+import DeviceInfo from 'react-native-device-info';
+import { getLocalIPAddress } from '../../utils/networkUtils';
+import { navigate } from '../../utils/NavigationUtil';
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const QRScannerModal = ({ visible, onClose }: ModalProps) => {
-  const [loading, setLoading] = useState(true);
-  const [codeFound, setCodeFound] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
-  const device = useCameraDevice('back') as any;
-  const shimmerTranslateX = useSharedValue(-300);
 
-  const shimmerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shimmerTranslateX.value }],
-  }));
-
-  useEffect(() => {
-    const checkPermission = async () => {
-      const cameraPermission = await Camera.requestCameraPermission();
-      setHasPermission(cameraPermission === 'granted');
-    };
-
-    checkPermission();
-
-    shimmerTranslateX.value = withRepeat(
-      withTiming(300, { duration: 1500, easing: Easing.linear }),
-      -1,
-      false,
-    );
-  }, [visible]);
-
-  useEffect(() => {
-    shimmerTranslateX.value = withRepeat(
-      withTiming(300, { duration: 1500, easing: Easing.linear }),
-    );
-  }, [shimmerTranslateX]);
-
-  const handleScan = (data: any) => {
-    const [connectionData, deviceName] = data.replace('tcp://', '').split('|');
-    const [host, port] = connectionData?.split(':');
-  };
-
-  const codeScanner = useMemo<CodeScanner>(
-    () => ({
-      codeTypes: ['qr', 'codabar'],
-      onCodeScanned: codes => {
-        if (codeFound) {
-          return;
-        }
-        console.log(`Scanned ${codes?.length} codes!`);
-        if (codes?.length > 0) {
-          const scannedData = codes[0].value;
-          console.log(scannedData);
-          setCodeFound(true);
-          handleScan(scannedData);
-        }
-      },
-    }),
-    [codeFound],
-  );
-
-  return (
-    <Modal
-      animationType="slide"
-      visible={visible}
-      presentationStyle="formSheet"
-      onRequestClose={onClose}
-      onDismiss={onClose}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.qrContainer}>
-          {loading ? (
-            <View style={styles.skeleton}>
-              <Animated.View style={[shimmerStyle]}>
-                <LinearGradient
-                  colors={['#f3f3f3', '#fff', '#f3f3f3']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </Animated.View>
-            </View>
-          ) : (
-            <>
-              {!device || !hasPermission ? (
-                <View style={styles.skeleton}>
-                  <Image
-                    source={require('../../../assets/images/no_camera.png')}
-                    style={modalStyles.noCameraImage}
-                  />
-                </View>
-              ) : (
-                <View style={styles.skeleton}>
-                  <Camera
-                    style={styles.camera}
-                    isActive={visible}
-                    device={device}
-                    codeScanner={codeScanner}
-                  />
-                </View>
-              )}
-            </>
-          )}
-        </View>
-        <View
-          style={{
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20,
-            width: '100%',
-          }}
-        >
-          <CustomText style={styles.infoText1}>
-            Ensure you're on the same Wi-Fi network
-          </CustomText>
-          <CustomText style={styles.infoText2}>
-            Ask the receiver to show a QR code to connect and transfer files.
-          </CustomText>
-        </View>
-        <ActivityIndicator
-          size={'small'}
-          color={'#000'}
-          style={{ alignSelf: 'center' }}
-        />
-        <TouchableOpacity onPress={() => onClose()} style={styles.closeButton}>
-          <Icon iconFamily="Ionicons" name="close" size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
-    </Modal>
-  );
-};
-
- const QRGenerateModal = ({ visible, onClose }: ModalProps) => {
+const QRGenerateModal = ({ visible, onClose }: ModalProps) => {
+  const { isConnected, startServer, server } = useTCP();
   const [loading, setLoading] = useState(true);
   const [qrValue, setQRValue] = useState('');
   const shimmerTranslateX = useSharedValue(-300);
@@ -174,7 +54,37 @@ const QRScannerModal = ({ visible, onClose }: ModalProps) => {
       -1,
       false,
     );
+
+    if (visible) {
+      setLoading(true);
+      setupServer();
+    }
   }, [visible]);
+
+  const setupServer = async () => {
+    const deviceName = await DeviceInfo.getDeviceName();
+    const ip = await getLocalIPAddress();
+    const port = 4000;
+
+    if (!server) {
+      startServer(port);
+    }
+
+    setQRValue(`tcp://${ip}:${port}|${deviceName}`);
+    console.log(`Server info: ${ip}:${port}`);
+  };
+
+  // useEffect(() => {
+  //   setupServer();
+  // }, []);
+
+  useEffect(() => {
+    console.log('TCPProvider: is Connected: ', isConnected);
+    if (isConnected) {
+      onClose();
+      navigate('ConnectionScreen');
+    }
+  }, [isConnected]);
 
   return (
     <Modal

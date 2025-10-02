@@ -3,6 +3,9 @@ import React from 'react';
 import Icon from '../global/Icon';
 import { Colors } from '../../utils/Constants';
 import CustomText from '../global/CustomText';
+import { useTCP } from '../../service/TCPProvider';
+import { navigate } from '../../utils/NavigationUtil';
+import { pickDocument, pickImage } from '../../utils/libraryHelpers';
 
 type OptionsProps = {
   isHome?: boolean;
@@ -11,13 +14,31 @@ type OptionsProps = {
 };
 
 const Options = ({ isHome, onFilePickedUp, onMediaPickedUp }: OptionsProps) => {
+  const { isConnected } = useTCP();
+
+  const handleUniversalPicker = async (type: string) => {
+    if (isHome) {
+      if (isConnected) {
+        navigate('ConnectionScreen');
+      } else {
+        navigate('SendScreen');
+      }
+      return;
+    }
+
+    if (type === 'images' && onMediaPickedUp) {
+      pickImage(onMediaPickedUp);
+    }
+    if (type === 'file' && onFilePickedUp) {
+      pickDocument(onFilePickedUp);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.subContainer}
-        onPress={() => {
-           ;
-        }}
+        onPress={() => handleUniversalPicker('images')}
       >
         <Icon
           iconFamily="Ionicons"
@@ -35,9 +56,7 @@ const Options = ({ isHome, onFilePickedUp, onMediaPickedUp }: OptionsProps) => {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.subContainer}
-        onPress={() => {
-           ;
-        }}
+        onPress={() => handleUniversalPicker('file')}
       >
         <Icon
           iconFamily="Ionicons"
@@ -53,12 +72,7 @@ const Options = ({ isHome, onFilePickedUp, onMediaPickedUp }: OptionsProps) => {
           Audio
         </CustomText>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.subContainer}
-        onPress={() => {
-           ;
-        }}
-      >
+      <TouchableOpacity style={styles.subContainer} onPress={() => handleUniversalPicker('file')}>
         <Icon
           iconFamily="Ionicons"
           name="folder-open"
@@ -73,12 +87,7 @@ const Options = ({ isHome, onFilePickedUp, onMediaPickedUp }: OptionsProps) => {
           Files
         </CustomText>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.subContainer}
-        onPress={() => {
-           ;
-        }}
-      >
+      <TouchableOpacity style={styles.subContainer} onPress={() => {}}>
         <Icon
           iconFamily="MaterialCommunityIcons"
           name="contacts"

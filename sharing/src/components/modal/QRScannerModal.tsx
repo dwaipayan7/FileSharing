@@ -26,6 +26,8 @@ import {
   useCameraDevice,
 } from 'react-native-vision-camera';
 import { modalStyles } from '../../styles/modalStyles';
+import { useTCP } from '../../service/TCPProvider';
+import { navigate } from '../../utils/NavigationUtil';
 
 interface ModalProps {
   visible: boolean;
@@ -38,6 +40,7 @@ const QRScannerModal = ({ visible, onClose }: ModalProps) => {
   const [hasPermission, setHasPermission] = useState(false);
   const device = useCameraDevice('back') as any;
   const shimmerTranslateX = useSharedValue(-300);
+  const { connectToServer, isConnected } = useTCP();
 
   const shimmerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerTranslateX.value }],
@@ -68,6 +71,7 @@ const QRScannerModal = ({ visible, onClose }: ModalProps) => {
   const handleScan = (data: any) => {
     const [connectionData, deviceName] = data.replace('tcp://', '').split('|');
     const [host, port] = connectionData?.split(':');
+    connectToServer(host, parseInt(port, 10), deviceName);
   };
 
   const codeScanner = useMemo<CodeScanner>(
@@ -88,6 +92,13 @@ const QRScannerModal = ({ visible, onClose }: ModalProps) => {
     }),
     [codeFound],
   );
+
+  useEffect(() => {
+    if (isConnected) {
+      onClose();
+      navigate('ConnectionScreen');
+    }
+  }, [isConnected]);
 
   if (loading) {
     return (
